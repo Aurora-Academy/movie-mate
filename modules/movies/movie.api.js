@@ -1,4 +1,6 @@
 const router = require("express").Router();
+const movieController = require("./movie.controller");
+const { secure } = require("../../utils/secure");
 
 router.get("/", (req, res, next) => {
   try {
@@ -8,67 +10,69 @@ router.get("/", (req, res, next) => {
   }
 });
 
-router.post("/", (req, res, next) => {
+router.post("/", secure(["admin"]), async (req, res, next) => {
   try {
-    res.json({ msg: "Created new movie" });
+    const result = await movieController.create(req.body);
+    res.json({ msg: "Created new movie", data: result });
   } catch (e) {
     next(e);
   }
 });
 
-router.get("/:id", (req, res, next) => {
-  try {
-    const { id } = req.params;
-    res.json({ msg: `Read one movie by ${id}` });
-  } catch (e) {
-    next(e);
-  }
-});
-
-router.put("/:id", (req, res, next) => {
+router.get("/:id", async (req, res, next) => {
   try {
     const { id } = req.params;
-    res.json({ msg: `Update one movie by ${id}` });
+    const result = await movieController.getById(id);
+    res.json({ msg: `Read one movie by ${id}`, data: result });
   } catch (e) {
     next(e);
   }
 });
 
-router.delete("/:id", (req, res, next) => {
+router.put("/:id", secure(["admin"]), async (req, res, next) => {
   try {
     const { id } = req.params;
-    res.json({ msg: `Delete one movie by ${id}` });
+    const result = await movieController.update(id, req.body);
+    res.json({ msg: `Update one movie by ${id}`, data: result });
   } catch (e) {
     next(e);
   }
 });
 
-router.patch("/:id/seats", (req, res, next) => {
+router.delete("/:id", secure(["admin"]), async (req, res, next) => {
   try {
     const { id } = req.params;
-    res.json({ msg: `Update the seat number of one movie by ${id}` });
+    const result = await movieController.remove(id);
+    res.json({ msg: `Delete one movie by ${id}`, data: result });
   } catch (e) {
     next(e);
   }
 });
 
-router.patch("/:id/release-date", (req, res, next) => {
+router.patch("/:id/seats", secure(["admin"]), async (req, res, next) => {
   try {
     const { id } = req.params;
-    res.json({ msg: `Update the release date of one movie by ${id}` });
+    const result = await movieController.updateSeats(id, req.body);
+    res.json({
+      msg: `Update the seat number of one movie by ${id}`,
+      data: result,
+    });
   } catch (e) {
     next(e);
   }
 });
 
-/* (7)
-Create
-Read only one Movie
-Update
-Delete
-List
-Update the seats for one movie
-Change the release date of 1 movie
-*/
+router.patch("/:id/release-date", secure(["admin"]), async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const result = await movieController.updateReleaseDate(id, req.body);
+    res.json({
+      msg: `Update the release date of one movie by ${id}`,
+      data: result,
+    });
+  } catch (e) {
+    next(e);
+  }
+});
 
 module.exports = router;
