@@ -1,4 +1,5 @@
 const { Schema, model } = require("mongoose");
+const { ObjectId } = Schema.Types;
 
 const movieSchema = new Schema(
   {
@@ -8,10 +9,11 @@ const movieSchema = new Schema(
     synopsis: { type: String },
     poster: { type: String, required: true },
     releaseDate: { type: Date, required: true, default: Date.now },
-    endDate: { type: Date, required: true, default: Date.now },
+    endDate: { type: Date, required: true },
     seats: { type: Number, required: true, default: 0 },
-    // TODO (reference with User)
-    //   createdBy: {}
+    price: { type: Number, required: true, default: 0 },
+    createdBy: { type: ObjectId, ref: "User" },
+    updatedBy: { type: ObjectId, ref: "User" },
   },
   {
     timestamps: true,
@@ -19,3 +21,18 @@ const movieSchema = new Schema(
 );
 
 https: module.exports = model("Movie", movieSchema);
+
+/*
+Step 1:
+Update model
+const { ObjectId } = Schema.Types;
+type: ObjectId, ref: "User"
+
+Step 2
+secure currentUser 
+
+Step 3
+use the req.currentUser 
+to add new req.body.createdBy / req.body.updatedBy
+
+*/

@@ -23,6 +23,7 @@ const secure = (sysRole = []) => {
       const validRole = checkRole({ sysRole, userRole: userInfo?.roles || [] });
       if (!validRole) throw new Error("User unauthorized");
       req.currentUser = userInfo?._id;
+      req.isAdmin = userInfo?.roles.includes("admin");
       next();
     } catch (e) {
       next(e);

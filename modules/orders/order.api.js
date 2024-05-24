@@ -1,52 +1,55 @@
 const router = require("express").Router();
+const orderController = require("./order.controller");
+const { secure } = require("../../utils/secure");
 
-router.get("/", (req, res, next) => {
+router.get("/", secure(), async (req, res, next) => {
   try {
-    res.json({ msg: "List all orders", data: req.body });
+    const { page, limit, showAll } = req.query;
+    const search = {
+      id: showAll && req.isAdmin ? "" : req.currentUser,
+    };
+    const result = await orderController.list({ page, limit, search });
+    res.json({ msg: "List all orders", data: result });
   } catch (e) {
     next(e);
   }
 });
 
-router.post("/", (req, res, next) => {
+router.post("/", secure(), async (req, res, next) => {
   try {
-    res.json({ msg: "Created one order" });
+    const result = await orderController.create(req.body);
+    res.json({ msg: "Created one order", data: result });
   } catch (e) {
     next(e);
   }
 });
 
-router.get("/:id", (req, res, next) => {
+router.get("/:id", secure(), async (req, res, next) => {
   try {
     const { id } = req.params;
-    res.json({ msg: `Get one Order by ${id}` });
+    const result = await orderController.getById(id);
+    res.json({ msg: `Get one Order by ${id}`, data: result });
   } catch (e) {
     next(e);
   }
 });
 
-router.delete("/:id", (req, res, next) => {
+router.patch("/:id/status", secure(["admin"]), async (req, res, next) => {
   try {
     const { id } = req.params;
-    res.json({ msg: `Delete one Order by ${id}` });
+    req.body.approvedBy = req.currentUser;
+    const result = await orderController.changeStatus(id, req.body);
+    res.json({ msg: `Change status of one Order by ${id}`, data: result });
   } catch (e) {
     next(e);
   }
 });
 
-router.patch("/:id/status", (req, res, next) => {
+router.put("/:id", secure(["admin"]), async (req, res, next) => {
   try {
     const { id } = req.params;
-    res.json({ msg: `Change status of one Order by ${id}` });
-  } catch (e) {
-    next(e);
-  }
-});
-
-router.put("/:id", (req, res, next) => {
-  try {
-    const { id } = req.params;
-    res.json({ msg: `update one Order by ${id}` });
+    const result = await orderController.updateById(id, req.body);
+    res.json({ msg: `updated one Order by ${id}`, data: result });
   } catch (e) {
     next(e);
   }

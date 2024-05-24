@@ -57,8 +57,70 @@ const getById = (id) => {
   return userModel.findOne({ _id: id });
 };
 
-const list = async () => {
-  return userModel.find();
+const list = async ({ page = 1, limit = 10, search }) => {
+  const query = [];
+  // Search
+  if (search?.name) {
+    query.push({
+      $match: {
+        name: new RegExp(search?.name, "gi"),
+      },
+    });
+  }
+  if (search?.email) {
+    query.push({
+      $match: {
+        email: new RegExp(search?.email, "gi"),
+      },
+    });
+  }
+  // Sort
+  query.push({
+    $sort: {
+      createdAt: 1,
+    },
+  });
+  // Filter by Role home work
+  // Pagination
+  query.push(
+    {
+      $facet: {
+        metadata: [
+          {
+            $count: "total",
+          },
+        ],
+        data: [
+          {
+            $skip: (+page - 1) * +limit,
+          },
+          {
+            $limit: +limit,
+          },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        total: {
+          $arrayElemAt: ["$metadata.total", 0],
+        },
+      },
+    },
+    {
+      $project: {
+        metadata: 0,
+        "data.password": 0,
+      },
+    }
+  );
+  const result = await userModel.aggregate(query);
+  return {
+    total: result[0]?.total || 0,
+    users: result[0]?.data,
+    page: +page,
+    limit: +limit,
+  };
 };
 
 const updateById = (id, payload) => {

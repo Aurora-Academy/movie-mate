@@ -74,8 +74,9 @@ router.post("/verify-email-token", async (req, res, next) => {
 
 router.get("/", secure(["admin"]), async (req, res, next) => {
   try {
-    // TODO Advanced Ops
-    const data = await userController.list();
+    const { page, limit, name, email } = req.query;
+    const search = { name, email };
+    const data = await userController.list({ page, limit, search });
     res.json({ msg: "User List generated", data });
   } catch (e) {
     next(e);
